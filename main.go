@@ -10,26 +10,87 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/golang/snappy"
 	"github.com/hamba/avro/v2"
+	"github.com/metatexx/avrox"
 	must "github.com/metatexx/mxx/mustfatal"
 )
 
 func main() {
+	flagFile := flag.String("f", "", "read from the given file")
 	flagSnappyBlock := flag.Bool("snappy-block", false, "decode data with snappy (block mode) first")
 	flagSnappyStream := flag.Bool("snappy-stream", false, "decode data with snappy (stream mode) first")
 	flagGZip := flag.Bool("gzip", false, "decode data with GZip first")
 	flagDeflate := flag.Bool("deflate", false, "decode data with deflate first")
-	flagString := flag.Bool("string", false, "output raw as escaped string")
+	flagQuote := flag.Bool("q", false, "quote output string (escapes)")
 	flagCBOR := flag.Bool("cbor", false, "output CBOR as JSON")
 	flagGOB := flag.Bool("gob", false, "output GOB as JSON")
-	flagAVRO := flag.String("avro", "", "avro base schema (will also set From to 'avro' format and To as json 'format')")
+	flagAvro := flag.String("avro", "", "avro base schema (will also set From to 'avro' format and To as json 'format')")
+	flagSkipAvroX := flag.Bool("skip-avrox", false, "don't check for avrox in raw mode")
+	flagAvroX := flag.String("avrox", "", "create a AvroX basic string|int|[]byte from input")
+	flagHandleLF := flag.Bool("n", false,
+		"don't add a lf at the end of avrox outputs and strip it from inputs (avrox specific)")
+	flagUnquote := flag.Bool("e", false, "unquotes arguments")
 	flag.Parse()
 
 	var r io.Reader
-	r = os.Stdin
+	if *flagFile != "" {
+		r = must.OkOne(os.Open(*flagFile))
+	} else {
+		r = os.Stdin
+	}
+
+	if flag.NArg() == 1 {
+		r = strings.NewReader(flag.Arg(0))
+	}
+
+	if *flagAvroX != "" {
+		v := string(must.OkOne(io.ReadAll(r)))
+
+		// Unquote the data if asked for
+		if *flagUnquote {
+			if len(v) > 1 && v[0:1] != `"` {
+				v = `"` + v + `"`
+			}
+			var errUnquote error
+			v, errUnquote = strconv.Unquote(v)
+			if errUnquote != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "Error while unquoting: %s\n", errUnquote)
+				os.Exit(5)
+			}
+		}
+
+		// we strip a lf if asked for
+		if *flagHandleLF && len(v) > 1 && v[len(v)-1:] == "\n" {
+			v = v[:len(v)-1]
+		}
+
+		//fmt.Fprintf(os.Stderr, "%q", v)
+		var data any
+		switch *flagAvroX {
+		case "bytes":
+			data = []byte(v)
+		case "string":
+			data = v
+		case "int":
+			var errAtoi error
+			data, errAtoi = strconv.Atoi(v)
+			if errAtoi != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "Error while unquoting: %s\n", errAtoi)
+				os.Exit(5)
+			}
+		}
+		if *flagQuote {
+			fmt.Printf("%q", must.OkOne(avrox.MarshalBasic(data)))
+		} else {
+			fmt.Printf("%s", must.OkOne(avrox.MarshalBasic(data)))
+		}
+		os.Exit(0)
+	}
 
 	if *flagSnappyBlock {
 		// There is no streaming decompression for snappy
@@ -58,7 +119,7 @@ func main() {
 		r = flate.NewReader(r)
 	}
 
-	if *flagString {
+	if *flagQuote {
 		var buf bytes.Buffer
 		must.OkSkipOne(buf.ReadFrom(r))
 		fmt.Printf("%#v\n", buf.String())
@@ -77,8 +138,8 @@ func main() {
 		// Convert the decoded data to JSON
 		jsonData := must.OkOne(json.MarshalIndent(gobNative, "", "  "))
 		fmt.Printf("%s\n", jsonData)
-	} else if *flagAVRO != "" {
-		schemaString := string(must.OkOne(os.ReadFile(*flagAVRO)))
+	} else if *flagAvro != "" {
+		schemaString := string(must.OkOne(os.ReadFile(*flagAvro)))
 		schema := must.OkOne(avro.Parse(schemaString))
 		dec := avro.NewDecoderForSchema(schema, r)
 		var avroNative any
@@ -86,6 +147,55 @@ func main() {
 		jsonData := must.OkOne(json.MarshalIndent(avroNative, "", "  "))
 		fmt.Printf("%s\n", jsonData)
 	} else {
+		if !*flagSkipAvroX {
+			// we check if we have avrox data
+			b := make([]byte, 4)
+			n := must.IgnoreOne(r.Read(b))
+			if n == 0 {
+				os.Exit(0)
+			}
+			if avrox.IsMagic(b) {
+				nID, sID, cID, err := avrox.DecodeMagic(b)
+				if err != nil {
+					fmt.Printf("err: %s", err)
+					os.Exit(5)
+				}
+				buf := bytes.Buffer{}
+				buf.Write(b)
+				must.OkSkipOne(buf.ReadFrom(r))
+				if nID == avrox.NamespaceBasic {
+					x := must.OkOne(avrox.UnmarshalBasic(buf.Bytes()))
+					switch v := x.(type) {
+					case string:
+						if !*flagHandleLF && len(v) > 1 && v[len(v)-1:] != "\n" {
+							fmt.Println(v)
+						} else {
+							fmt.Print(v)
+						}
+					case []byte:
+						vv := string(v)
+						if !*flagHandleLF && len(vv) > 1 && vv[len(vv)-1:] != "\n" {
+							fmt.Println(vv)
+						} else {
+							fmt.Print(vv)
+						}
+					case int:
+						if !*flagHandleLF {
+							fmt.Println(v)
+						} else {
+							fmt.Print(v)
+						}
+					default:
+						fmt.Printf("AvroXBasic(S: %d / C: %d)\n", sID, cID)
+					}
+				} else {
+					fmt.Printf("AvroX(N: %d / S: %d / C: %d)\n", nID, sID, cID)
+					os.Exit(0)
+				}
+			} else {
+				must.OkSkipOne(os.Stdout.Write(b))
+			}
+		}
 		must.OkSkipOne(io.Copy(os.Stdout, r))
 		//fmt.Println("unsupported format conversion")
 	}
