@@ -12,6 +12,8 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/metatexx/avrox v0.0.0-20230415224903-0780de5a8003 h1:BrMHIH79V1eCpyiYEFL1WjS9qYkIVZ3J/YRGPZyLnQQ=
 github.com/metatexx/avrox v0.0.0-20230415224903-0780de5a8003/go.mod h1:Ly0hJTeNseB4gxQAWddgQd/dAOpoyUuaty642mDFrEY=
+github.com/metatexx/avrox v0.0.0-20230416222937-af2541d5e8e2 h1:2bacxHy7mMF4L9WaH/A3wlkv06qsYaDs87gJofwsAns=
+github.com/metatexx/avrox v0.0.0-20230416222937-af2541d5e8e2/go.mod h1:5DyuJqh2uJwjSjADXsOGVb0TCx408Nf4FsPxYZxy90U=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9 h1:p+bXEhHj5BEfce/dTpsswqvCw5rMcXsJPW8dX5DX8A4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9/go.mod h1:nWPCtHF3CrrknRi4d9hYVSJWvamRjGLvzyplQpkoMeg=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
