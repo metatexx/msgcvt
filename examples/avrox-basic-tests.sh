@@ -14,3 +14,6 @@ test "$(msgcvt -avrox int 42 | msgcvt -n | msgcvt -avrox int | msgcvt)" = 42 && 
 echo -n "testing avrox basic string from file: "
 test "$(msgcvt -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string | msgcvt | xxd)" = \
  "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"
+echo -n "testing avrox basic string from file (compressed): "
+test "$(msgcvt -snappy-block -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string | msgcvt | xxd)" = \
+ "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"

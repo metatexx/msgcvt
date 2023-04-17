@@ -84,10 +84,15 @@ func main() {
 				os.Exit(5)
 			}
 		}
+		cID := avrox.CompNone
+		if *flagSnappyBlock {
+			cID = avrox.CompSnappy
+		}
+
 		if *flagQuote {
-			fmt.Printf("%q", must.OkOne(avrox.MarshalBasic(data)))
+			fmt.Printf("%q", must.OkOne(avrox.MarshalBasic(data, cID)))
 		} else {
-			fmt.Printf("%s", must.OkOne(avrox.MarshalBasic(data)))
+			fmt.Printf("%s", must.OkOne(avrox.MarshalBasic(data, cID)))
 		}
 		os.Exit(0)
 	}

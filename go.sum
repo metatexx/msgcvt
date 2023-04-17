@@ -14,6 +14,10 @@ github.com/metatexx/avrox v0.0.0-20230415224903-0780de5a8003 h1:BrMHIH79V1eCpyiY
 github.com/metatexx/avrox v0.0.0-20230415224903-0780de5a8003/go.mod h1:Ly0hJTeNseB4gxQAWddgQd/dAOpoyUuaty642mDFrEY=
 github.com/metatexx/avrox v0.0.0-20230416222937-af2541d5e8e2 h1:2bacxHy7mMF4L9WaH/A3wlkv06qsYaDs87gJofwsAns=
 github.com/metatexx/avrox v0.0.0-20230416222937-af2541d5e8e2/go.mod h1:5DyuJqh2uJwjSjADXsOGVb0TCx408Nf4FsPxYZxy90U=
+github.com/metatexx/avrox v0.0.0-20230417125645-c585b3b481d9 h1:nDqhI1My/CQbJrDNez1ePn4q2D0qqEbrF1Qtv0l/CUQ=
+github.com/metatexx/avrox v0.0.0-20230417125645-c585b3b481d9/go.mod h1:5DyuJqh2uJwjSjADXsOGVb0TCx408Nf4FsPxYZxy90U=
+github.com/metatexx/avrox v0.0.0-20230417134249-78dad33d955d h1:+2RWeLcSg3qLn7N/eqvTurXsru89O6ThIFwrZIBAg7c=
+github.com/metatexx/avrox v0.0.0-20230417134249-78dad33d955d/go.mod h1:5DyuJqh2uJwjSjADXsOGVb0TCx408Nf4FsPxYZxy90U=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9 h1:p+bXEhHj5BEfce/dTpsswqvCw5rMcXsJPW8dX5DX8A4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9/go.mod h1:nWPCtHF3CrrknRi4d9hYVSJWvamRjGLvzyplQpkoMeg=
 github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
