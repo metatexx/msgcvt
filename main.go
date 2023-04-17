@@ -179,6 +179,8 @@ func main() {
 						} else {
 							fmt.Print(vv)
 						}
+					case map[string]any:
+						fmt.Print(fmt.Sprintf("%#v\n", v)[23:])
 					case int:
 						if !*flagHandleLF {
 							fmt.Println(v)
