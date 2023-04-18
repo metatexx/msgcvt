@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# This was only tested on Darwin
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # Change the working directory to the directory of the script
 cd "$SCRIPT_DIR" || exit 5
@@ -14,6 +17,15 @@ test "$(msgcvt -avrox int 42 | msgcvt -n | msgcvt -avrox int | msgcvt)" = 42 && 
 echo -n "testing avrox basic string from file: "
 test "$(msgcvt -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string | msgcvt | xxd)" = \
  "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"
-echo -n "testing avrox basic string from file (compressed): "
-test "$(msgcvt -snappy-block -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string | msgcvt | xxd)" = \
+echo -n "testing avrox basic string from file (snappy): "
+test "$(msgcvt -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string -snappy | msgcvt | xxd)" = \
  "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"
+echo -n "testing avrox basic string from file (flate): "
+test "$(msgcvt -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string -flate | msgcvt | xxd)" = \
+ "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"
+echo -n "testing avrox basic string from file (gzip): "
+test "$(msgcvt -avrox string -f test.txt | msgcvt -n | msgcvt -avrox string -gzip | msgcvt | xxd)" = \
+ "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"
+echo -n "file to snappy encoded avrox bytes and back: "
+test "$(msgcvt -f /bin/sh -snappy -avrox bytes | msgcvt -n | xxd)" = \
+ "$(cat /bin/sh | xxd)" && echo "ok" || echo "failed"

@@ -21,11 +21,20 @@ import (
 )
 
 func main() {
+	defer func() {
+		rv := recover()
+		if rv != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Recovered from panic: %v\n", rv)
+			os.Exit(5)
+		}
+	}()
+
+	flagAnalyse := flag.Bool("analyse", false, "pipes data and gives some info about it")
 	flagFile := flag.String("f", "", "read from the given file")
-	flagSnappyBlock := flag.Bool("snappy-block", false, "decode data with snappy (block mode) first")
-	flagSnappyStream := flag.Bool("snappy-stream", false, "decode data with snappy (stream mode) first")
-	flagGZip := flag.Bool("gzip", false, "decode data with GZip first")
-	flagDeflate := flag.Bool("deflate", false, "decode data with deflate first")
+	flagSnappyBlock := flag.Bool("snappy", false, "encode/decode data with snappy (block mode)")
+	flagSnappyStream := flag.Bool("snappy-stream", false, "encode/decode data with snappy (stream mode)")
+	flagGZip := flag.Bool("gzip", false, "encode/decode data with GZip (default compression)")
+	flagFlate := flag.Bool("flate", false, "encode/decode data with deflate (default compression)")
 	flagQuote := flag.Bool("q", false, "quote output string (escapes)")
 	flagCBOR := flag.Bool("cbor", false, "output CBOR as JSON")
 	flagGOB := flag.Bool("gob", false, "output GOB as JSON")
@@ -46,6 +55,51 @@ func main() {
 
 	if flag.NArg() == 1 {
 		r = strings.NewReader(flag.Arg(0))
+	}
+
+	if *flagAnalyse {
+		b := make([]byte, 4)
+		n := must.IgnoreOne(r.Read(b))
+		if n == 0 {
+			_, _ = fmt.Fprintf(os.Stderr, "0 bytes\n")
+			os.Exit(0)
+		}
+		if avrox.IsMagic(b) {
+			nID, sID, cID, err := avrox.DecodeMagic(b)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "err: %s", err)
+				os.Exit(5)
+			}
+			var size1 int
+			var size2 int64
+			size1, err = os.Stdout.Write(b)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "err: %s", err)
+				os.Exit(5)
+
+			}
+			size2, err = io.Copy(os.Stdout, r)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "err: %s", err)
+				os.Exit(5)
+			}
+			_, _ = fmt.Fprintf(os.Stderr, "%d bytes of AvroX(N: %d / S: %d / C: %d)\n", int64(size1)+size2, nID, sID, cID)
+		} else {
+			var size2 int64
+			size1, err := os.Stdout.Write(b)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "err: %s", err)
+				os.Exit(5)
+
+			}
+			size2, err = io.Copy(os.Stdout, r)
+			if err != nil {
+				_, _ = fmt.Fprintf(os.Stderr, "err: %s", err)
+				os.Exit(5)
+			}
+			_, _ = fmt.Fprintf(os.Stderr, "%d bytes (unknown)\n", int64(size1)+size2)
+		}
+		os.Exit(0)
 	}
 
 	if *flagAvroX != "" {
@@ -87,6 +141,10 @@ func main() {
 		cID := avrox.CompNone
 		if *flagSnappyBlock {
 			cID = avrox.CompSnappy
+		} else if *flagFlate {
+			cID = avrox.CompFlate
+		} else if *flagGZip {
+			cID = avrox.CompGZip
 		}
 
 		if *flagQuote {
@@ -97,7 +155,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *flagSnappyBlock {
+	switch {
+	case *flagSnappyBlock:
 		// There is no streaming decompression for snappy
 		// read all data
 		compressed := must.OkOne(io.ReadAll(r))
@@ -111,16 +170,11 @@ func main() {
 			// this may be "right"
 			r = bytes.NewBuffer(compressed)
 		}
-	}
-
-	if *flagSnappyStream {
+	case *flagSnappyStream:
 		r = snappy.NewReader(r)
-	}
-
-	if *flagGZip {
+	case *flagGZip:
 		r = must.OkOne(gzip.NewReader(r))
-	}
-	if *flagDeflate {
+	case *flagFlate:
 		r = flate.NewReader(r)
 	}
 
