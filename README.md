@@ -1,10 +1,14 @@
-# msgcvt - use it with `nats --translate`
+## msgcvt - use it with `nats --translate`
 
-## Introduction
+### Introduction
 
-`msgcvt` is a command-line utility designed to convert data between different message encodings. This tool offers a variety of functionalities including translation of formats to human-readable output, analysis of data, and creation of AvroX basic types.
+`msgcvt` is a command-line utility designed to convert data between different message encodings and was originally created a tool to use with `nats --translate`. See [natscli](https://github.com/nats-io/natscli) / [nats.io](https://nats.io/).
 
-## Available Commands
+This tool offers a variety of functionalities including translation of formats to human-readable output, analysis of AcroX data, and creation of [AvroX](https://github.com/metatexx/avrox) basic types.
+
+***Notice: This package is a work in progress (WIP)***
+
+### Usage
 
 ```
 usage: msgcvt [<flags>] <command> [<args> ...]
@@ -72,8 +76,8 @@ avrox [<flags>] <type>
     -c, --compress=COMPRESS  set compression type for AcroX data
 ```
 
-## Conclusion
-
-`msgcvt` is a versatile utility that simplifies the process of working with different message encodings. Whether you need to translate, analyse data, or create AvroX basic types, `msgcvt` has got you covered. For any additional help or usage examples, please use the `-?, --help` flag. 
+### Outro
 
 Happy data converting!
+
+Copyright METATEXX GmbH 2023 / [MIT License](LICENSE)
