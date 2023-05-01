@@ -5,9 +5,9 @@ go 1.20
 require (
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/golang/snappy v0.0.4
-	github.com/hamba/avro/v2 v2.8.0
-	github.com/metatexx/avrox v0.0.0-20230419122710-6979aab3a4bf
-	github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9
+	github.com/hamba/avro/v2 v2.8.1
+	github.com/metatexx/avrox v0.0.0-20230429224457-571b31ee5fb7
+	github.com/metatexx/mxx v0.0.0-20230429013849-8045df4c8952
 )
 
 require (
@@ -16,5 +16,5 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/exp v0.0.0-20230419192730-864b3d6c5c2c // indirect
+	golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 // indirect
 )
