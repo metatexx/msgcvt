@@ -51,6 +51,7 @@ func run(r io.Reader, args []string) (rc int) {
 	app.Flag("hex", "read from the given hex bytes").Short('x').HexBytesVar(&flagHex)
 
 	cmdTranslate := app.Command("translate", "translates from a format to a human readable output (usually indented JSON)")
+	cmdTranslate.Default()
 	subQuote := cmdTranslate.Command("quote", "quote output string (escapes)")
 	subHex := cmdTranslate.Command("hex", "output data as hex bytes")
 	subHexDump := cmdTranslate.Command("hexdump", "output data as a hex dump")
@@ -59,7 +60,7 @@ func run(r io.Reader, args []string) (rc int) {
 	subAvro := cmdTranslate.Command("avro", "avro base schema as file (will also set From to 'avro' format and To as json 'format')")
 	var avroSchema string
 	subAvro.Arg("file", "avro schema to use").ExistingFileVar(&avroSchema)
-	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)")
+	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)").Default()
 	flagAvroX := subRAW.Flag("avrox", "don't check for avrox in raw mode").Default("true").Bool()
 	var flagEnsureLF bool
 	subRAW.Flag("ensure-lf", "make sure the ouput ends with a linefeed").Short('l').UnNegatableBoolVar(&flagEnsureLF)
@@ -87,24 +88,6 @@ func run(r io.Reader, args []string) (rc int) {
 	cmdAvroX.Flag("compress", "set compression type for AcroX data").Short('c').
 		EnumVar(&compressionType, "snappy", "gzip", "flate")
 
-	if len(args) == 0 {
-		args = []string{"translate", "raw"}
-	} else if len(args) > 0 && len(args[0]) > 0 {
-		if args[0][:1] == "-" {
-			useTranslate := true
-			for _, arg := range args {
-				if arg == "translate" || arg == "analyse" || arg == "avrox" || arg == "--help" || arg == "-?" {
-					useTranslate = false
-				}
-			}
-			if useTranslate {
-				args = append([]string{"translate", "raw"}, args...)
-			}
-		} else if args[0] == "quote" || args[0] == "avro" || args[0] == "cbor" || args[0] == "raw" ||
-			args[0] == "gob" || args[0] == "hex" || args[0] == "hexdump" {
-			args = append([]string{"translate"}, args...)
-		}
-	}
 	appCmd := app.MustParseWithUsage(args)
 
 	if flagData != "" {
