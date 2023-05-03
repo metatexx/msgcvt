@@ -46,7 +46,11 @@ func run(r io.Reader, args []string) (rc int) {
 	app.HelpFlag.Short('?')
 	flagFile := app.Flag("file", "read from the given file").Short('f').ExistingFile()
 	var flagData string
-	app.Flag("data", "read from the given string").Short('d').StringVar(&flagData)
+	var flagDataSet bool
+	app.Flag("data", "read from the given string").Short('d').Action(func(_ *fisk.ParseContext) error {
+		flagDataSet = true
+		return nil
+	}).StringVar(&flagData)
 	var flagHex []byte
 	app.Flag("hex", "read from the given hex bytes").Short('x').HexBytesVar(&flagHex)
 
@@ -90,7 +94,7 @@ func run(r io.Reader, args []string) (rc int) {
 
 	appCmd := app.MustParseWithUsage(args)
 
-	if flagData != "" {
+	if flagDataSet {
 		r = strings.NewReader(flagData)
 	} else if len(flagHex) > 0 {
 		r = bytes.NewReader(flagHex)

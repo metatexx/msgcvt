@@ -3,6 +3,7 @@ module github.com/metatexx/msgcvt
 go 1.20
 
 require (
+	github.com/choria-io/fisk v0.5.0
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/golang/snappy v0.0.4
 	github.com/hamba/avro/v2 v2.8.1
