@@ -84,8 +84,8 @@ func run(r io.Reader, args []string) (rc int) {
 	var flagQuote bool
 	cmdAnalyse.Flag("quote", "quote output string (escapes)").Short('q').UnNegatableBoolVar(&flagQuote)
 
-	cmdAvroX := app.Command("avrox", "create an AvroX basic type (string|int|bytes)")
-	AvroXBasicSchema := cmdAvroX.Arg("type", "one of string,int,bytes").Required().
+	cmdAvroX := app.Command("avrox", "create an AvroX basic type (string|int|bytes|decimal)")
+	AvroXBasicSchema := cmdAvroX.Arg("type", "one of string,int,bytes|decimal").Required().
 		Enum("string", "int", "bytes", "decimal")
 	var flagUnquote bool
 	cmdAvroX.Flag("unquote", "removes quotes from start and end of the data before parsing").Short('u').UnNegatableBoolVar(&flagUnquote)

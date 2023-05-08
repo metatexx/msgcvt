@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/metatexx/avrox"
 	must "github.com/metatexx/mxx/mustfatal"
@@ -41,15 +42,15 @@ func doAvroX(r io.Reader, basicShema string, unQuote, stripLF, quote bool, compr
 		data = v
 	case "decimal":
 		var ok bool
-		data, ok = (&big.Rat{}).SetString(v)
+		data, ok = (&big.Rat{}).SetString(strings.TrimSpace(v))
 		if !ok {
-			data = "(defective)"
+			_, _ = fmt.Fprintf(os.Stderr, "(defective)")
 		}
 	case "int":
 		var errAtoi error
 		data, errAtoi = strconv.Atoi(v)
 		if errAtoi != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Error while unquoting: %s\n", errAtoi)
+			_, _ = fmt.Fprintf(os.Stderr, "Error while reading string as int: %s\n", errAtoi)
 			return 5
 		}
 	}

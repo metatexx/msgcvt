@@ -14,6 +14,8 @@ test "$(echo "test" | msgcvt avrox -s string | msgcvt | xxd)" = \
  "$(echo -n "test" | xxd)" && echo "ok" || echo "failed"
 echo -n "testing avrox basic int: "
 test "$(msgcvt avrox int -d 42 | msgcvt | msgcvt avrox int | msgcvt)" = 42 && echo "ok" || echo "failed"
+echo -n "testing avrox basic decimal: "
+test "$(msgcvt avrox decimal -d 1.3 | msgcvt --decimal-float)" = "1.3" && echo "ok" || echo "failed"
 echo -n "testing avrox basic string from file: "
 test "$(msgcvt avrox string -f test.txt | msgcvt | msgcvt avrox string | msgcvt | xxd)" = \
  "$(echo -e -n "Wello Horld!\n" | xxd)" && echo "ok" || echo "failed"

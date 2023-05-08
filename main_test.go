@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func Test_run(t *testing.T) {
 		{"avrox-string", args{strings.NewReader("test\n"), []string{"avrox", "string"}},
 			append([]byte{147, 1, 0, 9, 10}, []byte("test\n")...), 0},
 		{"avrox-decimal", args{strings.NewReader("1.3\n"), []string{"avrox", "decimal"}},
-			append([]byte{147, 1, 0, 9, 10}, []byte("1.3000\n")...), 0},
+			[]byte("\x93\x01\x001\x042\xc8"), 0},
 		{"strip-lf", args{strings.NewReader("test\n"), []string{"avrox", "-s", "string"}},
 			append([]byte{147, 1, 0, 9, 8}, []byte("test")...), 0},
 		{"unquote", args{strings.NewReader(`test\n`), []string{"avrox", "-u", "string"}},
@@ -50,7 +51,9 @@ func Test_run(t *testing.T) {
 			gotOutput := buf.Bytes()
 			// Check the output.
 			if !bytes.Equal(gotOutput, tt.wantOutput) {
+				fmt.Printf("%q, want %q", string(gotOutput), string(tt.wantOutput))
 				t.Errorf("run() = %v, want %v", gotOutput, tt.wantOutput)
+
 			}
 		})
 	}
