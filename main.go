@@ -229,6 +229,7 @@ func run(r io.Reader, args []string) (rc int) {
 					default:
 						fmt.Printf("AvroXBasic(S: %d / C: %d)\n", sID, cID)
 					}
+					return 0
 				} else {
 					fmt.Printf("AvroX(N: %d / S: %d / C: %d)\n", nID, sID, cID)
 					return 0
