@@ -24,6 +24,8 @@ func Test_run(t *testing.T) {
 		{"zero", args{bytes.NewReader([]byte{0}), []string{}}, []byte{0}, 0},
 		{"avrox-string", args{strings.NewReader("test\n"), []string{"avrox", "string"}},
 			append([]byte{147, 1, 0, 9, 10}, []byte("test\n")...), 0},
+		{"avrox-decimal", args{strings.NewReader("1.3\n"), []string{"avrox", "decimal"}},
+			append([]byte{147, 1, 0, 9, 10}, []byte("1.3000\n")...), 0},
 		{"strip-lf", args{strings.NewReader("test\n"), []string{"avrox", "-s", "string"}},
 			append([]byte{147, 1, 0, 9, 8}, []byte("test")...), 0},
 		{"unquote", args{strings.NewReader(`test\n`), []string{"avrox", "-u", "string"}},

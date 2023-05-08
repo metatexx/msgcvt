@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"strconv"
 
@@ -38,6 +39,12 @@ func doAvroX(r io.Reader, basicShema string, unQuote, stripLF, quote bool, compr
 		data = []byte(v)
 	case "string":
 		data = v
+	case "decimal":
+		var ok bool
+		data, ok = (&big.Rat{}).SetString(v)
+		if !ok {
+			data = "(defective)"
+		}
 	case "int":
 		var errAtoi error
 		data, errAtoi = strconv.Atoi(v)

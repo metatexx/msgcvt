@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"strings"
 
@@ -66,6 +67,7 @@ func run(r io.Reader, args []string) (rc int) {
 	subAvro.Arg("file", "avro schema to use").ExistingFileVar(&avroSchema)
 	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)").Default()
 	flagAvroX := subRAW.Flag("avrox", "don't check for avrox in raw mode").Default("true").Bool()
+	flagDecimalAsFloat := subRAW.Flag("decimal-float", "outputs AvroxBasicDecimal as float64 instead of big.Rat(io)").Default("false").UnNegatableBool()
 	var flagEnsureLF bool
 	subRAW.Flag("ensure-lf", "make sure the ouput ends with a linefeed").Short('l').UnNegatableBoolVar(&flagEnsureLF)
 
@@ -83,7 +85,8 @@ func run(r io.Reader, args []string) (rc int) {
 	cmdAnalyse.Flag("quote", "quote output string (escapes)").Short('q').UnNegatableBoolVar(&flagQuote)
 
 	cmdAvroX := app.Command("avrox", "create an AvroX basic type (string|int|bytes)")
-	AvroXBasicSchema := cmdAvroX.Arg("type", "one of string,int,bytes").Required().Enum("string", "int", "bytes")
+	AvroXBasicSchema := cmdAvroX.Arg("type", "one of string,int,bytes").Required().
+		Enum("string", "int", "bytes", "decimal")
 	var flagUnquote bool
 	cmdAvroX.Flag("unquote", "removes quotes from start and end of the data before parsing").Short('u').UnNegatableBoolVar(&flagUnquote)
 	var flagStripLF bool
@@ -205,6 +208,18 @@ func run(r io.Reader, args []string) (rc int) {
 						}
 					case map[string]any:
 						fmt.Print(fmt.Sprintf("%#v\n", v)[23:])
+					case *big.Rat:
+						var out any
+						if *flagDecimalAsFloat {
+							out, _ = v.Float64()
+						} else {
+							out = v.String()
+						}
+						if flagEnsureLF {
+							fmt.Println(out)
+						} else {
+							fmt.Print(out)
+						}
 					case int:
 						if flagEnsureLF {
 							fmt.Println(v)
