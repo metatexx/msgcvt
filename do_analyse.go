@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/metatexx/avrox"
-	must "github.com/metatexx/mxx/mustfatal"
 	"io"
 	"os"
+
+	"github.com/metatexx/avrox"
+	must "github.com/metatexx/mxx/mustfatal"
 )
 
 func doAnalyse(r io.Reader, flagQuote bool) int {
-	b := make([]byte, 4)
+	b := make([]byte, avrox.MagicLen)
 	n := must.IgnoreOne(r.Read(b))
 	if n == 0 {
 		_, _ = fmt.Fprintf(os.Stderr, "0 bytes\n")

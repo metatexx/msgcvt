@@ -7,7 +7,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.4.0
 	github.com/golang/snappy v0.0.4
 	github.com/hamba/avro/v2 v2.8.1
-	github.com/metatexx/avrox v0.0.0-20230508161212-7a16deda91f6
+	github.com/metatexx/avrox v0.0.0-20230510232139-26d850b5e23b
 	github.com/metatexx/mxx v0.0.0-20230429013849-8045df4c8952
 )
 

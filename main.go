@@ -175,7 +175,7 @@ func run(r io.Reader, args []string) (rc int) {
 	case subRAW.FullCommand():
 		if *flagAvroX {
 			// we check if we have avrox data
-			b := make([]byte, 4)
+			b := make([]byte, avrox.MagicLen)
 			n := must.IgnoreOne(r.Read(b))
 			if n == 0 {
 				return 0

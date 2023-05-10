@@ -24,13 +24,13 @@ func Test_run(t *testing.T) {
 		{"empty", args{strings.NewReader(""), []string{}}, []byte(""), 0},
 		{"zero", args{bytes.NewReader([]byte{0}), []string{}}, []byte{0}, 0},
 		{"avrox-string", args{strings.NewReader("test\n"), []string{"avrox", "string"}},
-			append([]byte{147, 1, 0, 9, 10}, []byte("test\n")...), 0},
+			append([]byte{147, 0, 0, 1, 0, 0, 1, 254, 10}, []byte("test\n")...), 0},
 		{"avrox-decimal", args{strings.NewReader("1.3\n"), []string{"avrox", "decimal"}},
-			[]byte("\x93\x01\x001\x042\xc8"), 0},
+			[]byte("\x93\x00\x00\x01\x00\x00\x06\xf9\x02\x042\xc8"), 0},
 		{"strip-lf", args{strings.NewReader("test\n"), []string{"avrox", "-s", "string"}},
-			append([]byte{147, 1, 0, 9, 8}, []byte("test")...), 0},
+			[]byte("\x93\x00\x00\x01\x00\x00\x01\xfe\btest"), 0},
 		{"unquote", args{strings.NewReader(`test\n`), []string{"avrox", "-u", "string"}},
-			append([]byte{147, 1, 0, 9, 10}, []byte("test\n")...), 0},
+			[]byte("\x93\x00\x00\x01\x00\x00\x01\xfe\ntest\n"), 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

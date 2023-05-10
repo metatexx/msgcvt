@@ -28,6 +28,8 @@ github.com/metatexx/avrox v0.0.0-20230429224457-571b31ee5fb7 h1:p2iFRZW4fUqW9XaY
 github.com/metatexx/avrox v0.0.0-20230429224457-571b31ee5fb7/go.mod h1:5DyuJqh2uJwjSjADXsOGVb0TCx408Nf4FsPxYZxy90U=
 github.com/metatexx/avrox v0.0.0-20230508161212-7a16deda91f6 h1:lMF9k6fcACADTqmqF5KZFDvmxDe2/wBa5VkQHtNpG6s=
 github.com/metatexx/avrox v0.0.0-20230508161212-7a16deda91f6/go.mod h1:nP3Olz0n29Pn0HOR4GAQvW0ePd5mpURijz2DOi3wSI4=
+github.com/metatexx/avrox v0.0.0-20230510232139-26d850b5e23b h1:2SghrhcvqEBhh0jzNrpzvoo7NqK8J7kIHASzojYhD2w=
+github.com/metatexx/avrox v0.0.0-20230510232139-26d850b5e23b/go.mod h1:nP3Olz0n29Pn0HOR4GAQvW0ePd5mpURijz2DOi3wSI4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9 h1:p+bXEhHj5BEfce/dTpsswqvCw5rMcXsJPW8dX5DX8A4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9/go.mod h1:nWPCtHF3CrrknRi4d9hYVSJWvamRjGLvzyplQpkoMeg=
 github.com/metatexx/mxx v0.0.0-20230429013849-8045df4c8952 h1:ji4cgdY7o/tm+iXriaprvEuucLzQtdgcOtSYw1AIb3M=
