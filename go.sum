@@ -30,6 +30,8 @@ github.com/metatexx/avrox v0.0.0-20230508161212-7a16deda91f6 h1:lMF9k6fcACADTqmq
 github.com/metatexx/avrox v0.0.0-20230508161212-7a16deda91f6/go.mod h1:nP3Olz0n29Pn0HOR4GAQvW0ePd5mpURijz2DOi3wSI4=
 github.com/metatexx/avrox v0.0.0-20230510232139-26d850b5e23b h1:2SghrhcvqEBhh0jzNrpzvoo7NqK8J7kIHASzojYhD2w=
 github.com/metatexx/avrox v0.0.0-20230510232139-26d850b5e23b/go.mod h1:nP3Olz0n29Pn0HOR4GAQvW0ePd5mpURijz2DOi3wSI4=
+github.com/metatexx/avrox v0.0.0-20230511071051-e014ca0c390a h1:DfHyfQtfRcGqflf2+nP+f+n5CmPUvWdnqYRzrfqjR6I=
+github.com/metatexx/avrox v0.0.0-20230511071051-e014ca0c390a/go.mod h1:nP3Olz0n29Pn0HOR4GAQvW0ePd5mpURijz2DOi3wSI4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9 h1:p+bXEhHj5BEfce/dTpsswqvCw5rMcXsJPW8dX5DX8A4=
 github.com/metatexx/mxx v0.0.0-20230413201358-2d43fc8cd9d9/go.mod h1:nWPCtHF3CrrknRi4d9hYVSJWvamRjGLvzyplQpkoMeg=
 github.com/metatexx/mxx v0.0.0-20230429013849-8045df4c8952 h1:ji4cgdY7o/tm+iXriaprvEuucLzQtdgcOtSYw1AIb3M=
@@ -56,4 +58,6 @@ golang.org/x/exp v0.0.0-20230419192730-864b3d6c5c2c h1:HDdYQYKOkvJT/Plb5HwJJywTV
 golang.org/x/exp v0.0.0-20230419192730-864b3d6c5c2c/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53 h1:5llv2sWeaMSnA3w2kS57ouQQ4pudlXrR0dCgw51QK9o=
 golang.org/x/exp v0.0.0-20230425010034-47ecfdc1ba53/go.mod h1:V1LtkGg67GoY2N1AnLN78QLrzxkLyJw7RJb1gzOOz9w=
+golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea h1:vLCWI/yYrdEHyN2JzIzPO3aaQJHQdp89IZBA/+azVC4=
+golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea/go.mod h1:V1LtkGg67GoY2N1AnLN78QLrzxkLyJw7RJb1gzOOz9w=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
