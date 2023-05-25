@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/choria-io/fisk"
 
@@ -226,12 +227,18 @@ func run(r io.Reader, args []string) (rc int) {
 						} else {
 							fmt.Print(v)
 						}
+					case time.Time:
+						if flagEnsureLF {
+							fmt.Println(v.Format(time.RFC3339))
+						} else {
+							fmt.Print(v.Format(time.RFC3339))
+						}
 					default:
-						fmt.Printf("AvroXBasic(S: %d / C: %d)\n", sID, cID)
+						fmt.Printf("UnknownAvroXBasic(S: %d / C: %d)\n", sID, cID)
 					}
 					return 0
 				} else {
-					fmt.Printf("AvroX(N: %d / S: %d / C: %d)\n", nID, sID, cID)
+					fmt.Printf("AvroX(%d.%d.%d / C: %d)\n", nID, sID>>8, sID&0xff, cID)
 					return 0
 				}
 			} else {
