@@ -12,6 +12,7 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -68,6 +69,15 @@ func run(r io.Reader, args []string) (rc int) {
 	subAvro.Arg("file", "avro schema to use").ExistingFileVar(&avroSchema)
 	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)").Default()
 	flagAvroX := subRAW.Flag("avrox", "don't check for avrox in raw mode").Default("true").Bool()
+	flagAVSC := subRAW.Flag("avsc", "paths that are recursively scanned for files with an '.avsc' extension. If found, they get parsed and being used to decode corresponding AvroX data")
+	var avscPaths []string
+	flagAVSC.ExistingFilesOrDirsVar(&avscPaths)
+	var verboseAVSC bool
+	subRAW.Flag("verbose", "Gives information about the avsc scanning phase (incl. the otherwise suppressed errors)").
+		Short('v').UnNegatableBoolVar(&verboseAVSC)
+	var noBasicsDetection bool
+	subRAW.Flag("no-basics", "No special AvroX basics detection (decodes them like other avrox data using the avsc schemas)").
+		Short('b').UnNegatableBoolVar(&noBasicsDetection)
 	flagDecimalAsFloat := subRAW.Flag("decimal-float", "outputs AvroxBasicDecimal as float64 instead of big.Rat(io)").Default("false").UnNegatableBool()
 	var flagEnsureLF bool
 	subRAW.Flag("ensure-lf", "make sure the ouput ends with a linefeed").Short('l').UnNegatableBoolVar(&flagEnsureLF)
@@ -175,6 +185,13 @@ func run(r io.Reader, args []string) (rc int) {
 		fmt.Printf("%s\n", jsonData)
 	case subRAW.FullCommand():
 		if *flagAvroX {
+			// scan for avsc files if requested
+			avroxSchemas := map[string]avro.NamedSchema{}
+			if len(avscPaths) > 0 {
+				// TODO: we should implement some system wide cache for that
+				err := scanForAVSC(avscPaths, avroxSchemas, verboseAVSC)
+				app.FatalIfError(err, "scanning avsc")
+			}
 			// we check if we have avrox data
 			b := make([]byte, avrox.MagicLen)
 			n := must.IgnoreOne(r.Read(b))
@@ -191,7 +208,7 @@ func run(r io.Reader, args []string) (rc int) {
 				buf := bytes.Buffer{}
 				buf.Write(b)
 				must.OkSkipOne(buf.ReadFrom(r))
-				if nID == avrox.NamespaceBasic {
+				if !noBasicsDetection && nID == avrox.NamespaceBasic {
 					x := must.OkOne(avrox.UnmarshalBasic(buf.Bytes()))
 					switch v := x.(type) {
 					case string:
@@ -238,7 +255,15 @@ func run(r io.Reader, args []string) (rc int) {
 					}
 					return 0
 				} else {
-					fmt.Printf("AvroX(%d.%d.%d / C: %d)\n", nID, sID>>8, sID&0xff, cID)
+					avroxID := fmt.Sprintf("%d.%d.%d", nID, sID>>8, sID&0xff)
+					fmt.Printf("AvroX(%d.%d.%d / C: %d / L: %d)\n", nID, sID>>8, sID&0xff, cID, buf.Len())
+					if schema, found := avroxSchemas[avroxID]; found {
+						dec := avro.NewDecoderForSchema(schema, &buf)
+						var avroNative any
+						must.Ok(dec.Decode(&avroNative))
+						jsonData := must.OkOne(json.MarshalIndent(avroNative, "", "  "))
+						fmt.Printf("%s\n", jsonData)
+					}
 					return 0
 				}
 			} else {
@@ -268,4 +293,47 @@ func convertMapKeysToStrings(data interface{}) (map[string]interface{}, error) {
 		return strMap, nil
 	}
 	return nil, fmt.Errorf("input data is not a map")
+}
+
+func scanForAVSC(paths []string, schemas map[string]avro.NamedSchema, verbose bool) error {
+	for _, path := range paths {
+		err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				base := filepath.Base(path)
+				if strings.HasSuffix(base, "_tests") {
+					return filepath.SkipDir
+				}
+				switch base {
+				case ".git", ".idea":
+					return filepath.SkipDir
+				}
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".avsc") {
+				schema, err := avro.ParseFiles(path)
+				if err != nil {
+					if verbose {
+						_, _ = fmt.Fprintf(os.Stderr, "scanning path %q: %v\n", path, err)
+					}
+					return nil
+				}
+				var nSchema avro.NamedSchema
+				nSchema = schema.(avro.NamedSchema)
+				tmp := nSchema.Prop("avrox")
+				if avroXID, ok := tmp.(string); ok {
+					if verbose {
+						_, _ = fmt.Fprintf(os.Stderr, "%s (%s)\n", nSchema.Name(), avroXID)
+					}
+					schemas[avroXID] = nSchema
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
