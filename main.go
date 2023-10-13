@@ -33,6 +33,13 @@ func main() {
 	rc := run(os.Stdin, os.Args[1:])
 	os.Exit(rc)
 }
+
+var flagAvroX bool
+var avscPaths []string
+var verboseAVSC bool
+var noBasicsDetection bool
+var decimalAsFloat bool
+
 func run(r io.Reader, args []string) (rc int) {
 	defer func() {
 		rv := recover()
@@ -58,29 +65,21 @@ func run(r io.Reader, args []string) (rc int) {
 	app.Flag("hex", "read from the given hex bytes").Short('x').HexBytesVar(&flagHex)
 
 	cmdTranslate := app.Command("translate", "translates from a format to a human readable output (usually indented JSON)")
-	cmdTranslate.Default()
-	subQuote := cmdTranslate.Command("quote", "quote output string (escapes)")
-	subHex := cmdTranslate.Command("hex", "output data as hex bytes")
-	subHexDump := cmdTranslate.Command("hexdump", "output data as a hex dump")
+	cmdTranslate.Default().Alias("t")
+	subQuote := cmdTranslate.Command("quote", "quote output string (escapes)").Default().Alias("q")
+	addAvroXFlags(subQuote)
+	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)").Alias("r")
+	addAvroXFlags(subRAW)
+	var flagEnsureLF bool
+	subRAW.Flag("ensure-lf", "make sure the ouput ends with a linefeed").Short('l').UnNegatableBoolVar(&flagEnsureLF)
+	subHex := cmdTranslate.Command("hex", "output data as hex bytes").Alias("h")
+	addAvroXFlags(subHex)
+	subHexDump := cmdTranslate.Command("hexdump", "output data as a hex dump").Alias("d")
 	subCBOR := cmdTranslate.Command("cbor", "output CBOR as JSON")
 	subGOB := cmdTranslate.Command("gob", "output GOB as JSON (not working!)")
 	subAvro := cmdTranslate.Command("avro", "avro base schema as file (will also set From to 'avro' format and To as json 'format')")
 	var avroSchema string
 	subAvro.Arg("file", "avro schema to use").ExistingFileVar(&avroSchema)
-	subRAW := cmdTranslate.Command("raw", "no translation (but detects AvroX by default)").Default()
-	flagAvroX := subRAW.Flag("avrox", "don't check for avrox in raw mode").Default("true").Bool()
-	flagAVSC := subRAW.Flag("avsc", "paths that are recursively scanned for files with an '.avsc' extension. If found, they get parsed and being used to decode corresponding AvroX data")
-	var avscPaths []string
-	flagAVSC.ExistingFilesOrDirsVar(&avscPaths)
-	var verboseAVSC bool
-	subRAW.Flag("verbose", "Gives information about the avsc scanning phase (incl. the otherwise suppressed errors)").
-		Short('v').UnNegatableBoolVar(&verboseAVSC)
-	var noBasicsDetection bool
-	subRAW.Flag("no-basics", "No special AvroX basics detection (decodes them like other avrox data using the avsc schemas)").
-		Short('b').UnNegatableBoolVar(&noBasicsDetection)
-	flagDecimalAsFloat := subRAW.Flag("decimal-float", "outputs AvroxBasicDecimal as float64 instead of big.Rat(io)").Default("false").UnNegatableBool()
-	var flagEnsureLF bool
-	subRAW.Flag("ensure-lf", "make sure the ouput ends with a linefeed").Short('l').UnNegatableBoolVar(&flagEnsureLF)
 
 	var decompressSnappyStream bool
 	app.Flag("snappy-stream", "decode data with snappy (stream mode)").UnNegatableBoolVar(&decompressSnappyStream)
@@ -148,14 +147,6 @@ func run(r io.Reader, args []string) (rc int) {
 		return doAnalyse(r, flagQuote)
 	case cmdAvroX.FullCommand():
 		return doAvroX(r, *AvroXBasicSchema, flagUnquote, flagStripLF, flagQuote, compressionType)
-	case subQuote.FullCommand():
-		var buf bytes.Buffer
-		must.OkSkipOne(buf.ReadFrom(r))
-		fmt.Printf("%q\n", buf.String())
-	case subHex.FullCommand():
-		var buf bytes.Buffer
-		must.OkSkipOne(buf.ReadFrom(r))
-		fmt.Printf("%x\n", buf.String())
 	case subHexDump.FullCommand():
 		stdoutDumper := hex.Dumper(os.Stdout)
 		defer func() { _ = stdoutDumper.Close() }()
@@ -183,8 +174,13 @@ func run(r io.Reader, args []string) (rc int) {
 		must.Ok(dec.Decode(&avroNative))
 		jsonData := must.OkOne(json.MarshalIndent(avroNative, "", "  "))
 		fmt.Printf("%s\n", jsonData)
+	case subQuote.FullCommand():
+		fallthrough
+	case subHex.FullCommand():
+		fallthrough
 	case subRAW.FullCommand():
-		if *flagAvroX {
+		buf := bytes.Buffer{}
+		if flagAvroX {
 			// scan for avsc files if requested
 			avroxSchemas := map[string]avro.NamedSchema{}
 			if len(avscPaths) > 0 {
@@ -228,7 +224,7 @@ func run(r io.Reader, args []string) (rc int) {
 						fmt.Print(fmt.Sprintf("%#v\n", v)[23:])
 					case *big.Rat:
 						var out any
-						if *flagDecimalAsFloat {
+						if decimalAsFloat {
 							out, _ = v.Float64()
 						} else {
 							out = v.String()
@@ -258,22 +254,34 @@ func run(r io.Reader, args []string) (rc int) {
 					avroxID := fmt.Sprintf("%d.%d.%d", nID, sID>>8, sID&0xff)
 					fmt.Printf("AvroX(%d.%d.%d / C: %d / L: %d)\n", nID, sID>>8, sID&0xff, cID, buf.Len())
 					if schema, found := avroxSchemas[avroxID]; found {
-						dec := avro.NewDecoderForSchema(schema, &buf)
 						var avroNative any
-						must.Ok(dec.Decode(&avroNative))
+						_, _, err = avrox.UnmarshalAny(buf.Bytes(), schema, &avroNative)
+						app.FatalIfError(err, "can't unmarshal data")
 						jsonData := must.OkOne(json.MarshalIndent(avroNative, "", "  "))
 						fmt.Printf("%s\n", jsonData)
 					}
 					return 0
 				}
+			} else if appCmd == subHex.FullCommand() {
+				buf.Write(b)
+			} else if appCmd == subQuote.FullCommand() {
+				buf.Write(b)
 			} else {
 				must.OkSkipOne(os.Stdout.Write(b))
 			}
 		}
-		must.OkSkipOne(io.Copy(os.Stdout, r))
-		if flagEnsureLF {
-			// ToDo: Actually test for the last rune being a lf
-			fmt.Println()
+		if appCmd == subHex.FullCommand() {
+			must.OkSkipOne(buf.ReadFrom(r))
+			fmt.Printf("%x\n", buf.String())
+		} else if appCmd == subQuote.FullCommand() {
+			must.OkSkipOne(buf.ReadFrom(r))
+			fmt.Printf("%q\n", buf.String())
+		} else {
+			must.OkSkipOne(io.Copy(os.Stdout, r))
+			if flagEnsureLF {
+				// ToDo: Actually test for the last rune being a lf
+				fmt.Println()
+			}
 		}
 		//fmt.Println("unsupported format conversion")
 	}
@@ -336,4 +344,15 @@ func scanForAVSC(paths []string, schemas map[string]avro.NamedSchema, verbose bo
 		}
 	}
 	return nil
+}
+
+func addAvroXFlags(cmd *fisk.CmdClause) {
+	cmd.Flag("avrox", "don't check for avrox in raw mode").Default("true").BoolVar(&flagAvroX)
+	flagAVSC := cmd.Flag("avsc", "paths that are recursively scanned for files with an '.avsc' extension. If found, they get parsed and being used to decode corresponding AvroX data")
+	flagAVSC.ExistingFilesOrDirsVar(&avscPaths)
+	cmd.Flag("verbose", "Gives information about the avsc scanning phase (incl. the otherwise suppressed errors)").
+		Short('v').UnNegatableBoolVar(&verboseAVSC)
+	cmd.Flag("no-basics", "No special AvroX basics detection (decodes them like other avrox data using the avsc schemas)").
+		Short('b').UnNegatableBoolVar(&noBasicsDetection)
+	cmd.Flag("decimal-float", "outputs AvroxBasicDecimal as float64 instead of big.Rat(io)").Default("false").UnNegatableBoolVar(&decimalAsFloat)
 }
