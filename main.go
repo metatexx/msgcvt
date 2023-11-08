@@ -21,6 +21,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 	"github.com/golang/snappy"
 	"github.com/hamba/avro/v2"
+
 	"github.com/metatexx/avrox"
 	must "github.com/metatexx/mxx/mustfatal"
 )
@@ -254,9 +255,11 @@ func run(r io.Reader, args []string) (rc int) {
 					avroxID := fmt.Sprintf("%d.%d.%d", nID, sID>>8, sID&0xff)
 					fmt.Printf("AvroX(%d.%d.%d / C: %d / L: %d)\n", nID, sID>>8, sID&0xff, cID, buf.Len())
 					if schema, found := avroxSchemas[avroxID]; found {
-						var avroNative any
+						var avroNative map[string]any
 						_, _, err = avrox.UnmarshalAny(buf.Bytes(), schema, &avroNative)
 						app.FatalIfError(err, "can't unmarshal data")
+						// change the byte array to a readable string
+						avroNative["Magic"] = fmt.Sprintf("%x", avroNative["Magic"])
 						jsonData := must.OkOne(json.MarshalIndent(avroNative, "", "  "))
 						fmt.Printf("%s\n", jsonData)
 					}
