@@ -9,10 +9,11 @@ import (
 	"strings"
 
 	"github.com/metatexx/avrox"
+	"github.com/metatexx/avrox/rawdate"
 	must "github.com/metatexx/mxx/mustfatal"
 )
 
-func doAvroX(r io.Reader, basicShema string, unQuote, stripLF, quote bool, compressionType string) int {
+func doAvroX(r io.Reader, basicSchema string, unQuote, stripLF, quote bool, compressionType string) int {
 	v := string(must.OkOne(io.ReadAll(r)))
 
 	// Unquote the data if asked for
@@ -35,11 +36,13 @@ func doAvroX(r io.Reader, basicShema string, unQuote, stripLF, quote bool, compr
 
 	//fmt.Fprintf(os.Stderr, "%q", v)
 	var data any
-	switch basicShema {
+	switch basicSchema {
 	case "bytes":
 		data = []byte(v)
 	case "string":
 		data = v
+	case "rawdate":
+		data = must.OkOne(rawdate.Parse(rawdate.ISODate, v))
 	case "decimal":
 		var ok bool
 		data, ok = (&big.Rat{}).SetString(strings.TrimSpace(v))

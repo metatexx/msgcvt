@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/metatexx/avrox/rawdate"
 	"io"
 	"math/big"
 	"os"
@@ -97,7 +98,7 @@ func run(r io.Reader, args []string) (rc int) {
 
 	cmdAvroX := app.Command("avrox", "create an AvroX basic type (string|int|bytes|decimal)")
 	AvroXBasicSchema := cmdAvroX.Arg("type", "one of string,int,bytes|decimal").Required().
-		Enum("string", "int", "bytes", "decimal")
+		Enum("string", "int", "bytes", "decimal", "rawdate")
 	var flagUnquote bool
 	cmdAvroX.Flag("unquote", "removes quotes from start and end of the data before parsing").Short('u').UnNegatableBoolVar(&flagUnquote)
 	var flagStripLF bool
@@ -246,6 +247,12 @@ func run(r io.Reader, args []string) (rc int) {
 							fmt.Println(v.Format(time.RFC3339))
 						} else {
 							fmt.Print(v.Format(time.RFC3339))
+						}
+					case rawdate.RawDate:
+						if flagEnsureLF {
+							fmt.Println(v.String())
+						} else {
+							fmt.Print(v.String())
 						}
 					default:
 						fmt.Printf("UnknownAvroXBasic(S: %d / C: %d)\n", sID, cID)

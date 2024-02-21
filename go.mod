@@ -3,11 +3,11 @@ module github.com/metatexx/msgcvt
 go 1.21
 
 require (
-	github.com/choria-io/fisk v0.6.1
-	github.com/fxamacker/cbor/v2 v2.5.0
+	github.com/choria-io/fisk v0.6.2
+	github.com/fxamacker/cbor/v2 v2.6.0
 	github.com/golang/snappy v0.0.4
-	github.com/hamba/avro/v2 v2.16.0
-	github.com/metatexx/avrox v0.1.0
+	github.com/hamba/avro/v2 v2.20.0
+	github.com/metatexx/avrox v0.4.1
 	github.com/metatexx/mxx v0.2.0
 )
 

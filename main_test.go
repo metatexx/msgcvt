@@ -20,17 +20,19 @@ func Test_run(t *testing.T) {
 		wantOutput []byte
 		wantRc     int
 	}{
-		{"simple", args{strings.NewReader("test"), []string{}}, []byte("test"), 0},
+		{"simple", args{strings.NewReader("test"), []string{}}, []byte{34, 116, 101, 115, 116, 34, 10}, 0},
 		{"empty", args{strings.NewReader(""), []string{}}, []byte(""), 0},
-		{"zero", args{bytes.NewReader([]byte{0}), []string{}}, []byte{0}, 0},
+		{"zero", args{bytes.NewReader([]byte{0}), []string{}}, []byte{34, 92, 120, 48, 48, 34, 10}, 0},
 		{"avrox-string", args{strings.NewReader("test\n"), []string{"avrox", "string"}},
-			append([]byte{147, 0, 0, 1, 0, 0, 1, 254, 10}, []byte("test\n")...), 0},
+			append([]byte("\x93\x00\x00\x01\x00\x01\x01\x01\n"), []byte("test\n")...), 0},
 		{"avrox-decimal", args{strings.NewReader("1.3\n"), []string{"avrox", "decimal"}},
-			[]byte("\x93\x00\x00\x01\x00\x00\x06\xf9\x02\x042\xc8"), 0},
+			[]byte("\x93\x00\x00\x01\x00\x06\x01\x04\x02\x042\xc8"), 0},
+		{"avrox-rawdate", args{strings.NewReader("0001-01-01"), []string{"avrox", "rawdate"}},
+			[]byte("\x93\x00\x00\x01\x00\a\x01\a\x00\x00\x00"), 0},
 		{"strip-lf", args{strings.NewReader("test\n"), []string{"avrox", "-s", "string"}},
-			[]byte("\x93\x00\x00\x01\x00\x00\x01\xfe\btest"), 0},
+			append([]byte("\x93\x00\x00\x01\x00\x01\x01\x01\b"), []byte("test")...), 0},
 		{"unquote", args{strings.NewReader(`test\n`), []string{"avrox", "-u", "string"}},
-			[]byte("\x93\x00\x00\x01\x00\x00\x01\xfe\ntest\n"), 0},
+			append([]byte("\x93\x00\x00\x01\x00\x01\x01\x01\n"), []byte("test\n")...), 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -31,3 +31,6 @@ test "$(msgcvt avrox string -f test.txt | msgcvt | msgcvt avrox string -c gzip |
 echo -n "file to snappy encoded avrox bytes and back: "
 test "$(msgcvt -f /bin/sh avrox bytes -c snappy | msgcvt | xxd)" = \
  "$(cat /bin/sh | xxd)" && echo "ok" || echo "failed"
+ echo -n "rawdate from a string representation: "
+test "$(msgcvt avrox rawdate -d "2024-02-20" | msgcvt | msgcvt avrox rawdate -c gzip | msgcvt | xxd)" = \
+ "$(echo -e -n "2024-02-20" | xxd)" && echo "ok" || echo "failed"
